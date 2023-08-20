@@ -4,11 +4,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/ikraamdaanis/store-server/internal/database"
 	"github.com/ikraamdaanis/store-server/internal/initializers"
-	"gorm.io/gorm"
 )
 
 func init() {
@@ -16,18 +16,22 @@ func init() {
 	database.ConnectDatabase()
 }
 
-type Product struct {
-	gorm.Model
-	Code  string
-	Price uint
+type Account struct {
+	ID        uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	Email     string    `gorm:"type:varchar(255);uniqueIndex;not null"`
+	Password  string    `gorm:"type:varchar(255);not null"`
+	Sessions  []Session `gorm:"foreignKey:AccountID"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
-type User struct {
-	gorm.Model
-	ID      uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	Name    string
-	Email   string
-	Session string
+type Session struct {
+	ID        uint      `gorm:"primaryKey"`
+	AccountID uuid.UUID `gorm:"type:uuid;not null"`
+	Token     string    `gorm:"type:varchar(255);not null"`
+	ExpiresAt time.Time `gorm:"not null"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func main() {
@@ -36,7 +40,7 @@ func main() {
 	})
 
 	// Migrate the schema
-	err := database.DB.AutoMigrate(&Product{}, &User{})
+	err := database.DB.AutoMigrate(&Account{}, &Session{})
 
 	if err != nil {
 		log.Println("Error migrating database: ", err)
