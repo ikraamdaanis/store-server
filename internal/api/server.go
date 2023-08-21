@@ -2,8 +2,9 @@ package api
 
 import (
 	"log"
-	"net/http"
 	"os"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func RunServer() {
@@ -13,10 +14,12 @@ func RunServer() {
 		port = "5000"
 	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello World"))
+	app := fiber.New()
+
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.SendString("Hello, World!")
 	})
 
 	log.Println("Server started on port " + port + ".")
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Fatal(app.Listen(":" + port))
 }
