@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/ikraamdaanis/store-server/internal/api/models"
@@ -77,8 +78,41 @@ func LoginUser(c *fiber.Ctx) error {
 		})
 	}
 
+	sessionToken, error := utils.CreateSession(foundUser.ID)
+
+	if error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to create session.",
+		})
+	}
+
+	session := &models.Session{
+		UserID:     foundUser.ID,
+		Token:      sessionToken,
+		UserAgent:  c.Get("User-Agent"),
+		IP_Address: c.Context().RemoteAddr().String(),
+	}
+
+	createdSession := &models.Session{}
+
+	err = database.DB.Create(&session).Scan(&createdSession)
+
+	if err.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to create session.",
+		})
+	}
+
+	cookie := new(fiber.Cookie)
+	cookie.Name = "session"
+	cookie.Value = session.Token
+	cookie.Expires = time.Now().Add(24 * time.Hour)
+
+	c.Cookie(cookie)
+
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message": "Successfully logged in.",
 		"data":    foundUser,
+		"session": createdSession,
 	})
 }
