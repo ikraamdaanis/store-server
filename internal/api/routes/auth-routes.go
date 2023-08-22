@@ -13,4 +13,5 @@ func AuthRoutes(app *fiber.App) {
 	})
 
 	userRoutes.Post("/sign-up", handlers.CreateUser)
+	userRoutes.Post("/login", handlers.LoginUser)
 }

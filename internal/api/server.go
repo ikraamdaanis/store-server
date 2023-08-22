@@ -17,10 +17,6 @@ func RunServer() {
 
 	app := fiber.New()
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello, World!")
-	})
-
 	routes.AuthRoutes(app)
 
 	log.Println("Server started on port " + port + ".")

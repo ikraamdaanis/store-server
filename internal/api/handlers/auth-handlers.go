@@ -49,3 +49,36 @@ func CreateUser(c *fiber.Ctx) error {
 		"data":    user,
 	})
 }
+
+func LoginUser(c *fiber.Ctx) error {
+	// Parse request body and create a new loginReq
+	loginReq := &models.User{}
+	foundUser := &models.User{}
+
+	if err := c.BodyParser(loginReq); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid request payload",
+		})
+	}
+
+	err := database.DB.Where("email = ?", loginReq.Email).First(&models.User{}).Scan(&foundUser)
+
+	if err.Error != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid email.",
+		})
+	}
+
+	passwordIsCorrect := utils.CheckPasswordHash(loginReq.Password, foundUser.Password)
+
+	if !passwordIsCorrect {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid password.",
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"message": "Successfully logged in.",
+		"data":    foundUser,
+	})
+}
