@@ -8,11 +8,13 @@ import (
 	"github.com/google/uuid"
 )
 
+var TokenExpiry = time.Now().Add(time.Second * 30)
+
 // Function to create a new session
 func CreateSession(accountID uuid.UUID) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"accountID": accountID,
-		"exp":       time.Now().Add(time.Second * 30).Unix(), // Token expiration
+		"exp":       TokenExpiry.Unix(), // Token expiration
 	})
 
 	tokenString, err := token.SignedString([]byte("your-secret-key"))

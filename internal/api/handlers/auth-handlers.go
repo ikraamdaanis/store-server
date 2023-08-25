@@ -91,6 +91,7 @@ func LoginUser(c *fiber.Ctx) error {
 		Token:      sessionToken,
 		UserAgent:  c.Get("User-Agent"),
 		IP_Address: c.Context().RemoteAddr().String(),
+		ExpiresAt:  utils.TokenExpiry,
 	}
 
 	createdSession := &models.Session{}
